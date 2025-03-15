@@ -606,7 +606,7 @@ const createProjects = () => {
       number: '01',
       title: 'Feeling Flow',
       description: "Feelin’ Flow is an AI-powered music recommendation web app that curates the perfect Spotify playlist based on your emotions. Whether you type in how you feel or let the app analyze your facial expression using AI and machine learning, Feelin’ Flow instantly understands your mood and delivers a personalized playlist that matches your vibe. Built with React and JavaScript on the front end and powered by a Python-based backend, the app seamlessly integrates with Spotify to enhance your listening experience.",
-      image: 'assets/pd1.PNG',
+      image: 'assets/pd1.png',
       projectLink: 'https://youtu.be/OcaeDJX6k7w',
       githubLink: 'https://github.com/Johnikpeme/spotify-emoter'
     },
