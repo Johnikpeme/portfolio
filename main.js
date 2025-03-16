@@ -778,7 +778,7 @@ const createPublications = () => {
       number: '01',
       title: 'The Past, Present & Future of Money/Banking',
       description: "The evolution of banking spans from traditional brick-and-mortar institutions to today’s digital and AI-driven financial ecosystems. In the past, banking relied on physical transactions and paper-based processes. The present is defined by fintech innovations, mobile banking, and decentralized finance (DeFi), enhancing accessibility and efficiency. Looking ahead, the future of banking will be shaped by AI, blockchain, and embedded finance, offering hyper-personalized experiences and seamless financial integration into daily life.",
-      image: 'assets/pb1.jpg',
+      image: 'assets/publish1.jpg',
       articleLink: 'https://medium.com/@johnprecious88/the-past-present-future-of-money-banking-1c766eb984f3'
     },
     {
