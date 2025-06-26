@@ -625,7 +625,15 @@ const createProjects = () => {
       image: 'assets/pd3.png',
       projectLink: 'https://public.tableau.com/app/profile/john.ikpeme/viz/shared/DYY2YQKRB',
       githubLink: 'https://github.com/Johnikpeme'
-    }
+    },
+    {
+      number: '04',
+      title: 'Lendsqr UI Redesign',
+      description: "I redesigned the Lendsqr dashboard and user details page to match a more modern slick look",
+      image: 'assets/lendsqr.png',
+      projectLink: 'https://john-ikpeme-lendsqr-fe-test-bay.vercel.app/',
+      githubLink: 'https://github.com/Johnikpeme/lendsqr-fe-test'
+    },
   ];
 
   projectData.forEach((proj, index) => {
