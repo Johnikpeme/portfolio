@@ -14,7 +14,7 @@ const loadFonts = () => {
 };
 loadFonts();
 
-// Navigation Bar (Sticky and Bold Links) - Updated to include Publications and mobile responsiveness
+// Navigation Bar (Sticky and Bold Links) - Updated to include Publications and Press and Media, mobile responsiveness
 const createNav = () => {
   const nav = document.createElement('nav');
   nav.style.display = 'flex';
@@ -45,7 +45,7 @@ const createNav = () => {
   links.style.gap = '30px';
   nav.appendChild(links);
 
-  const navItems = ['About Me', 'Skills', 'Project', 'Publications', 'Contact Me'];
+  const navItems = ['About Me', 'Skills', 'Project', 'Publications', 'Press and Media', 'Contact Me'];
   navItems.forEach(item => {
     const link = document.createElement('a');
     link.href = `#${item.toLowerCase().replace(/\s/g, '-')}`;
@@ -58,7 +58,7 @@ const createNav = () => {
   });
 
   const resumeLink = document.createElement('a');
-  resumeLink.href = 'https://drive.google.com/file/d/14T3Hr-QznZV-V5Ofxqr4nwIx-rh_PqUV/view?usp=sharing';
+  resumeLink.href = 'https://drive.google.com/file/d/16FkYk_uq4zMyKnDadMp8W7W1RxD9IEG0/view?usp=sharing';
   resumeLink.target = '_blank';
   resumeLink.rel = 'noopener noreferrer';
   resumeLink.download = '';
@@ -175,7 +175,7 @@ const createHero = () => {
   textContainer.appendChild(greeting);
 
   const title = document.createElement('h2');
-  title.textContent = 'Data Scientist, ML Engineer & Frontend Developer';
+  title.textContent = 'Software & Machine Learning Engineer';
   title.style.fontSize = '36px';
   title.style.fontWeight = '700';
   title.style.color = '#000000';
@@ -183,7 +183,7 @@ const createHero = () => {
   textContainer.appendChild(title);
 
   const bio = document.createElement('p');
-  bio.textContent = "I thrive on turning raw data into actionable insights, building intelligent systems, and crafting seamless user experiences. Whether it's developing machine learning models, automating workflows, creating real-time monitoring tools, or designing interactive web applications, I bring a hands-on approach to problem-solving with data and technology. With over six years of experience, I bridge the gap between data science, automation, and front-end development to build scalable and impactful solutions.";
+  bio.textContent = "I thrive on turning raw data into actionable insights, building intelligent systems, and crafting seamless user experiences. Whether it’s developing machine learning models, building scalable backend services, automating workflows, creating real-time monitoring tools, or designing interactive web applications, I bring a hands-on approach to solving problems with software and data. With over six years of experience, I bridge the gap between software engineering, data science, automation, and front-end development, delivering scalable, reliable, and impactful products end-to-end.";
   bio.style.fontSize = '16px';
   bio.style.fontWeight = '400';
   bio.style.color = '#666666';
@@ -411,16 +411,16 @@ const createExperience = () => {
     {
       company: 'Sterling Bank',
       logo: 'assets/sterling.png',
-      role: 'Enterprise Intelligence Analyst',
+      role: 'Software Engineer & Enterprise Intelligence Analyst',
       date: 'Mar 2023 - Present',
-      description: 'Developed and led OneMonitor, a real-time performance tracking application for major bank products on web and mobile, integrating 20+ dashboards for platforms like OneBank, USSD, and Specta. Automated data pipelines using MS SQL and PostgreSQL to generate efficient insights and built interactive Python Dash dashboards for enhanced monitoring. Designed and deployed an AI-powered incident tracking bot that leveraged machine learning models to automate ticket classification and assignment, significantly reducing resolution time by directing issues to the appropriate departments. Compiled detailed customer experience reports to improve service offerings and contributed to the Self-Service Project by automating processes to streamline stakeholder decision-making.'
+      description: 'At Sterling Bank, I spearhead the development and optimization of enterprise intelligence tools, focusing on real-time monitoring, automation, and AI-driven insights. Key contributions include leading the OneMonitor platform for tracking digital banking performance, automating data pipelines with Python and SQL, deploying ML models for efficient ticket routing and fraud detection, and implementing disaster recovery solutions. These efforts have enhanced operational efficiency, reduced resolution times by up to 60%, and empowered data-driven decision-making across channels like OneBank, Specta, and USSD.'
     },
     {
       company: 'Dash Studios',
       logo: 'assets/dash.png',
-      role: 'Co-Founder & CEO',
+      role: 'Web Developer & Data Scientist',
       date: 'Nov 2019 - Present',
-      description: 'Expanded the Nouns Hunt user base to over 10,000 players across 65 countries, earning multiple awards, including Debut of the Year. Leveraged Google Analytics, SQL, and Tableau to analyze user behavior, shaping data-driven game development and marketing strategies. Boosted player retention by 90% through enhanced user experience and sustained a competitive edge with in-depth market analysis.'
+      description: 'As a Web Developer & Data Scientist at Dash Studios, I architected and maintained the Nouns Hunt platform, scaling it to over 10,000 users across 65 countries and securing awards like Debut of the Year. I engineered responsive web interfaces and integrated data pipelines using SQL and Tableau for user behavior analysis, enabling data-driven enhancements in game mechanics and marketing. These initiatives drove a 90% increase in player retention through optimized UX and predictive analytics on engagement metrics.'
     },
     {
       company: 'UAC',
@@ -484,6 +484,108 @@ const createExperience = () => {
     description.style.lineHeight = '1.6';
     expCard.appendChild(description);
 
+    // Add Milestones for Sterling Bank
+    if (exp.company === 'Sterling Bank') {
+      const milestonesContainer = document.createElement('details');
+      milestonesContainer.style.marginTop = '20px';
+      milestonesContainer.style.border = '1px solid #333';
+      milestonesContainer.style.borderRadius = '5px';
+      milestonesContainer.style.overflow = 'hidden';
+
+      const summary = document.createElement('summary');
+      summary.textContent = 'Milestones';
+      summary.style.padding = '10px 15px';
+      summary.style.background = '#2A2A2A';
+      summary.style.fontSize = '18px';
+      summary.style.fontWeight = '700';
+      summary.style.color = '#FFFFFF';
+      summary.style.cursor = 'pointer';
+      summary.style.listStyle = 'none'; // Remove default marker
+      milestonesContainer.appendChild(summary);
+
+      const milestonesList = document.createElement('ul');
+      milestonesList.style.padding = '0 20px 20px';
+      milestonesList.style.margin = '0';
+      milestonesList.style.listStyleType = 'none';
+
+      const milestones = [
+        'Redeveloped and enhanced OneMonitor: Optimized real-time metrics, UI/UX overhaul, expanded coverage to new services (Doubble, Specta, etc.), improved error traceability (60% faster resolution), and established Git-based CI/CD with 4–6 weekly updates.',
+        'Optimized deployment processes: Refactored for environment configs, automated GitHub-to-server pulls, boosting delivery speed/reliability by 80%.',
+        'Automated NIBSS Market Data Processing: Python script for weekly ingestion of metrics, slashing report time from hours to minutes.',
+        'Deployed ML Ticket Classification Model: Supervised model on 2024 FreshService data, categorizing/routing tickets and cutting resolution time by 55%.',
+        'Built Fraud Monitoring Dashboard: Real-time detection of multi-channel suspicious activity for proactive interventions.',
+        'Implemented Disaster Recovery (DR) Setup: Replicated environment for critical DBs, ensuring OneMonitor continuity during failures.',
+        'Designed OneMonitor v2: Figma prototypes, backend engine for incident tracking and health checks.',
+        'Redesigned Self-Service Portal: Figma UI improvements, integrated AI chatbot and predictive analytics.',
+        'Automated Incident Reporting: Power Automate for hourly tracking and weekly summaries.',
+        'Conducted CX Analytics: In-depth reports for products like AltBank, Specta, and i-Invest.',
+        'Developed OneInsight Platform: Unified tool for sentiment/location analysis and reporting, reducing prep time by 95%.',
+        'Created Predictive Models: Downtime forecaster (50% faster diagnostics) and transaction volume predictor.',
+        'Led GLPI ITSM Project: In-house PHP/JS alternative to FreshService, designing modules for incidents/changes/assets, projected to save hundreds of thousands annually.'
+      ];
+
+      milestones.forEach(milestone => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>• ${milestone}</strong>`;
+        li.style.fontSize = '14px';
+        li.style.color = '#CCCCCC';
+        li.style.lineHeight = '1.5';
+        li.style.marginBottom = '10px';
+        li.style.padding = '5px 0';
+        milestonesList.appendChild(li);
+      });
+
+      milestonesContainer.appendChild(milestonesList);
+      expCard.appendChild(milestonesContainer);
+    }
+
+    // Add Milestones for Dash Studios
+    if (exp.company === 'Dash Studios') {
+      const milestonesContainer = document.createElement('details');
+      milestonesContainer.style.marginTop = '20px';
+      milestonesContainer.style.border = '1px solid #333';
+      milestonesContainer.style.borderRadius = '5px';
+      milestonesContainer.style.overflow = 'hidden';
+
+      const summary = document.createElement('summary');
+      summary.textContent = 'Milestones';
+      summary.style.padding = '10px 15px';
+      summary.style.background = '#2A2A2A';
+      summary.style.fontSize = '18px';
+      summary.style.fontWeight = '700';
+      summary.style.color = '#FFFFFF';
+      summary.style.cursor = 'pointer';
+      summary.style.listStyle = 'none'; // Remove default marker
+      milestonesContainer.appendChild(summary);
+
+      const milestonesList = document.createElement('ul');
+      milestonesList.style.padding = '0 20px 20px';
+      milestonesList.style.margin = '0';
+      milestonesList.style.listStyleType = 'none';
+
+      const milestones = [
+        'Engineered full-stack web development for Nouns Hunt website, utilizing HTML5 and JavaScript to create an immersive, responsive experience',
+        'Integrated SQL databases and Tableau visualizations for real-time user behavior analysis, informing iterative feature enhancements.',
+        'Conducted A/B testing and predictive modeling to optimize player engagement, resulting in a 90% retention boost.',
+        'Leveraged Google Analytics for cross-country user insights, driving targeted marketing strategies and user base growth to 20,000+ players.',
+        'Secured Debut of the Year award for debut title, Nouns Hunt'
+      ];
+
+      milestones.forEach(milestone => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>• ${milestone}</strong>`;
+        li.style.fontSize = '14px';
+        li.style.color = '#CCCCCC';
+        li.style.lineHeight = '1.5';
+        li.style.marginBottom = '10px';
+        li.style.padding = '5px 0';
+        milestonesList.appendChild(li);
+      });
+
+      milestonesContainer.appendChild(milestonesList);
+      expCard.appendChild(milestonesContainer);
+    }
+
     gsap.from(expCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
   });
 
@@ -545,7 +647,7 @@ const createAbout = () => {
   textContainer.appendChild(title);
 
   const description = document.createElement('p');
-  description.textContent = "I'm a passionate Data Scientist, Machine Learning Engineer, and Front-End Developer who thrives at the intersection of data, AI, and sleek user interfaces. I love turning complex data into actionable insights, building intelligent systems, and crafting intuitive web experiences. My journey started with web development, but over time, my curiosity led me deeper into machine learning, predictive modeling, and data-driven decision-making. Now, I specialize in leveraging technologies like Python, TensorFlow, React.js, and Next.js to build intelligent and scalable applications. Beyond tech, I’m a huge football fan, and when I’m not coding, you’ll probably find me watching a match, playing video games, or even designing them. I also have a soft spot for dogs, because let’s be honest—who doesn’t? I’m always exploring new challenges, whether it’s training a cutting-edge ML model, optimizing an AI pipeline, or pushing the boundaries of front-end performance. You can follow my journey on GitHub, where I build and share projects, or connect with me on Twitter for some quality banter.";
+  description.textContent = "I’m a passionate Software Engineer, Data Scientist, and Machine Learning Engineer who thrives at the intersection of data, AI, and elegant user interfaces. I love transforming complex data into meaningful insights, building intelligent end-to-end systems, and crafting seamless web experiences. My journey began in web development, but curiosity pushed me deeper into machine learning, predictive modeling, and data-driven problem-solving. Today, I specialize in leveraging Python, TensorFlow, React.js, and Next.js to build scalable applications, from backend services and automation pipelines to interactive dashboards and AI-powered tools. I enjoy challenges that let me optimize systems, design intuitive products, and push the boundaries of what’s possible with software and data. Outside of tech, I’m a huge football fan, a gamer at heart, and someone who enjoys designing interactive experiences. And yes, I absolutely love dogs. You can explore my projects on GitHub or catch me on Twitter where I share updates, insights, and the occasional banter.";
   description.style.fontSize = '16px';
   description.style.fontWeight = '400';
   description.style.color = '#666666';
@@ -612,6 +714,14 @@ const createProjects = () => {
     },
     {
       number: '02',
+      title: 'The Christmas Company',
+      description: "The Christmas Company is a comprehensive e-commerce platform designed for seamless online shopping of festive items. Featuring dynamic product catalogs, intuitive shopping cart functionality, and secure checkout processes, it brings holiday cheer to users worldwide. Developed entirely with JavaScript and deployed on Vercel for optimal performance.",
+      image: 'assets/christmas.jpg',
+      projectLink: 'https://christmas-shop-ten.vercel.app/',
+      githubLink: 'https://github.com/Johnikpeme/christmas-shop'
+    },
+    {
+      number: '03',
       title: 'Planet Vault',
       description: "PlanetVault is a futuristic web app that lets users explore and purchase unique planets in a dystopian multiverse. With an interactive catalog, planet slideshows, filters, and cart functionality, it delivers an immersive e-commerce experience. Built using HTML5, CSS3, and JavaScript, PlanetVault showcases dynamic front-end development and UI design.",
       image: 'assets/pd2.png',
@@ -619,7 +729,7 @@ const createProjects = () => {
       githubLink: 'https://github.com/Johnikpeme/planet-vault'
     },
     {
-      number: '03',
+      number: '04',
       title: 'Airbnb Listings & Pricing',
       description: "This study, conducted using Tableau with data across 10 major cities, investigates whether Airbnb effectively addresses the initial problem it aimed to solve or if hotels provide superior packages in comparison.",
       image: 'assets/pd3.png',
@@ -627,7 +737,7 @@ const createProjects = () => {
       githubLink: 'https://github.com/Johnikpeme'
     },
     {
-      number: '04',
+      number: '05',
       title: 'Lendsqr UI Redesign',
       description: "I redesigned the Lendsqr dashboard and user details page to match a more modern slick look",
       image: 'assets/lendsqr.png',
@@ -912,6 +1022,184 @@ const createPublications = () => {
   handleMobilePublications(mediaQuery);
 };
 createPublications();
+
+// Press and Media Section
+const createPressMedia = () => {
+  const pressMedia = document.createElement('section');
+  pressMedia.id = 'press-and-media';
+  pressMedia.style.padding = '50px 40px';
+  pressMedia.style.background = '#FFFFFF';
+  pressMedia.style.color = '#000000';
+  app.appendChild(pressMedia);
+
+  const title = document.createElement('h2');
+  title.innerHTML = 'Press & <span style="font-weight: 700;">Media</span>';
+  title.style.fontSize = '36px';
+  title.style.fontWeight = '400';
+  title.style.textAlign = 'center';
+  title.style.marginBottom = '40px';
+  pressMedia.appendChild(title);
+
+  const pressList = document.createElement('div');
+  pressList.style.maxWidth = '1000px';
+  pressList.style.margin = '0 auto';
+  pressMedia.appendChild(pressList);
+
+  const pressMediaData = [
+    {
+      number: '01',
+      title: 'Featured in the 11th Annual Forbes Africa 30 Under 30 special issue (June/July 2025)',
+      description: '',
+      logo: 'assets/forbes.png',
+      articleLink: 'https://lnkd.in/dq7vu7pg'
+    },
+    {
+      number: '02',
+      title: 'Voted Entrepreneur of the competition, Art of Lagos 2023',
+      description: '',
+      logo: 'assets/lagos.jpg', // Assume asset exists; replace with actual if needed
+      articleLink: null
+    },
+    {
+      number: '03',
+      title: 'Nominated for the Black Tech Achievement Award, United Kingdom, 2023',
+      description: '',
+      logo: 'assets/blacktech.jpg', // Assume asset exists; replace with actual if needed
+      articleLink: 'https://bit.ly/3jh1Cbv'
+    },
+    {
+      number: '04',
+      title: 'This Day Live Interview, 2023',
+      description: '',
+      logo: 'assets/thisday.png', // Assume asset exists; replace with actual if needed
+      articleLink: 'https://lnkd.in/dWVBk_33'
+    }
+  ];
+
+  pressMediaData.forEach((item, index) => {
+    const pressCard = document.createElement('div');
+    pressCard.style.display = 'flex';
+    pressCard.style.alignItems = 'center';
+    pressCard.style.marginBottom = '40px';
+    pressCard.style.gap = '30px';
+    pressCard.style.padding = '20px';
+    pressCard.style.background = '#F5F5F5';
+    pressCard.style.borderRadius = '10px';
+    pressList.appendChild(pressCard);
+
+    const logoContainer = document.createElement('div');
+    logoContainer.style.width = '45%';
+    logoContainer.style.height = '200px';
+    logoContainer.style.display = 'flex';
+    logoContainer.style.alignItems = 'center';
+    logoContainer.style.justifyContent = 'center';
+    logoContainer.style.background = '#FFFFFF';
+    logoContainer.style.borderRadius = '8px';
+    pressCard.appendChild(logoContainer);
+
+    const logoImg = document.createElement('img');
+    logoImg.src = item.logo;
+    logoImg.alt = `${item.title} Logo`;
+    logoImg.style.maxWidth = '100px';
+    logoImg.style.maxHeight = '100px';
+    logoImg.style.objectFit = 'contain';
+    logoContainer.appendChild(logoImg);
+
+    const textContainer = document.createElement('div');
+    textContainer.style.width = '55%';
+    textContainer.style.display = 'flex';
+    textContainer.style.flexDirection = 'column';
+    textContainer.style.gap = '10px';
+    pressCard.appendChild(textContainer);
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+    header.style.gap = '15px';
+    textContainer.appendChild(header);
+
+    const number = document.createElement('h3');
+    number.textContent = item.number;
+    number.style.fontSize = '32px';
+    number.style.fontWeight = '700';
+    number.style.color = '#FF8C00';
+    header.appendChild(number);
+
+    const title = document.createElement('h4');
+    title.textContent = item.title;
+    title.style.fontSize = '20px';
+    title.style.fontWeight = '700';
+    title.style.color = '#000000';
+    title.style.margin = '0';
+    header.appendChild(title);
+
+    const description = document.createElement('p');
+    description.textContent = item.description;
+    description.style.fontSize = '16px';
+    description.style.fontWeight = '400';
+    description.style.color = '#666666';
+    description.style.lineHeight = '1.6';
+    description.style.maxWidth = '90%';
+    if (item.description) {
+      textContainer.appendChild(description);
+    }
+
+    if (item.articleLink) {
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.marginTop = '10px';
+      textContainer.appendChild(buttonContainer);
+
+      const readMoreLink = document.createElement('a');
+      readMoreLink.href = item.articleLink;
+      readMoreLink.textContent = 'Read Article';
+      readMoreLink.style.display = 'inline-block';
+      readMoreLink.style.padding = '8px 15px';
+      readMoreLink.style.background = '#000000';
+      readMoreLink.style.color = '#FFFFFF';
+      readMoreLink.style.fontSize = '14px';
+      readMoreLink.style.fontWeight = '700';
+      readMoreLink.style.textDecoration = 'none';
+      readMoreLink.style.borderRadius = '5px';
+      readMoreLink.target = '_blank';
+      buttonContainer.appendChild(readMoreLink);
+    }
+
+    gsap.from(pressCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
+  });
+
+  // Mobile responsiveness
+  const mediaQuery = window.matchMedia('(max-width: 768px)');
+  const handleMobilePressMedia = (e) => {
+    if (e.matches) {
+      pressMedia.style.padding = '30px 20px';
+      title.style.fontSize = '28px';
+      pressList.style.maxWidth = '100%';
+      pressMediaData.forEach((_, index) => {
+        const card = pressList.children[index];
+        card.style.flexDirection = 'column';
+        card.children[0].style.width = '100%';
+        card.children[0].style.height = '150px';
+        card.children[1].style.width = '100%';
+        card.children[1].querySelector('h4').style.fontSize = '18px';
+      });
+    } else {
+      pressMedia.style.padding = '50px 40px';
+      title.style.fontSize = '36px';
+      pressList.style.maxWidth = '1000px';
+      pressMediaData.forEach((_, index) => {
+        const card = pressList.children[index];
+        card.style.flexDirection = 'row';
+        card.children[0].style.width = '45%';
+        card.children[0].style.height = '200px';
+        card.children[1].style.width = '55%';
+        card.children[1].querySelector('h4').style.fontSize = '20px';
+      });
+    }
+  };
+  mediaQuery.addEventListener('change', handleMobilePressMedia);
+  handleMobilePressMedia(mediaQuery);
+};
+createPressMedia();
 
 // Contact Section
 const createContact = () => {
