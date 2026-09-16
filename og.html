@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OG image source</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;background:#0d0c10;color:#eeedf3;font-family:'Space Grotesk',system-ui,sans-serif}
+  .card{position:relative;width:1200px;height:630px;overflow:hidden;background:#0d0c10;padding:64px 80px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(238,237,243,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(238,237,243,.06) 1px,transparent 1px);background-size:120px 120px}
+  .top{position:relative;display:flex;justify-content:space-between;align-items:center;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:18px;letter-spacing:.1em;text-transform:uppercase;color:#9c99a7}
+  .brand{display:flex;align-items:center;gap:14px;font-family:'Space Grotesk';font-weight:700;font-size:22px;letter-spacing:-.02em;color:#eeedf3;text-transform:none}
+  .mark{width:44px;height:44px;background:#eeedf3;color:#0d0c10;display:grid;place-items:center;font-size:22px}
+  h1{position:relative;margin:0;font-family:'Space Grotesk';font-weight:500;font-size:72px;line-height:.98;letter-spacing:-.035em;max-width:12ch}
+  h1 em{font-style:normal;color:#a98bff}
+  .bottom{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+  .sub{margin:0;font-size:22px;color:#c8c6d1;max-width:640px;line-height:1.4}
+  .sub b{color:#eeedf3;font-weight:500}
+  .pill{display:inline-flex;align-items:center;gap:10px;padding:10px 18px 10px 14px;border:1px solid rgba(238,237,243,.18);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#c8c6d1;white-space:nowrap}
+  .dot{width:10px;height:10px;background:#a98bff}
+  .photo{position:absolute;right:56px;bottom:0;height:560px;width:auto}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid"></div>
+  <img class="photo" src="assets/headshot-cutout.webp" alt="">
+  <div class="top">
+    <div class="brand"><img src="assets/headshot-sm.webp" alt="" style="width:44px;height:44px;object-fit:cover">John Ikpeme</div>
+    
+  </div>
+  <h1>I turn messy enterprise data into <em>systems people actually use.</em></h1>
+  <div class="bottom">
+    <p class="sub">Models, pipelines and the interfaces around them. <b>Hugo Inc.</b> · previously <b>Sterling Bank</b> · co-founder, <b>Dash Studios</b>.</p>
+    <span class="pill"><span class="dot"></span>Data Scientist &amp; ML Engineer · Lagos · johnikpeme.github.io/portfolio</span>
+  </div>
+</div>
+</body>
+</html>

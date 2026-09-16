@@ -1,1330 +1,282 @@
-// Create the app container
-const app = document.getElementById('app');
-app.style.background = '#FFFFFF';
-app.style.minHeight = '100vh';
-app.style.overflow = 'auto';
-app.style.fontFamily = "'Sora', sans-serif";
+/* =========================================================
+   John Ikpeme portfolio interactions
+   Vanilla JS + GSAP (ScrollTrigger, SplitText) + Lenis.
+   Everything degrades: no JS → content is fully visible.
+   ========================================================= */
+(() => {
+  "use strict";
 
-// Load Sora Font Dynamically
-const loadFonts = () => {
-  const link = document.createElement('link');
-  link.href = 'https://fonts.googleapis.com/css2?family=Sora:wght@400;700&display=swap';
-  link.rel = 'stylesheet';
-  document.head.appendChild(link);
-};
-loadFonts();
+  const root = document.documentElement;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const hasGsap = typeof window.gsap !== "undefined";
+  const $ = (s, c = document) => c.querySelector(s);
+  const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
 
-// Navigation Bar (Sticky and Bold Links) - Updated to include Publications and Press and Media, mobile responsiveness
-const createNav = () => {
-  const nav = document.createElement('nav');
-  nav.style.display = 'flex';
-  nav.style.justifyContent = 'space-between';
-  nav.style.alignItems = 'center';
-  nav.style.padding = '20px 40px';
-  nav.style.background = '#FFFFFF';
-  nav.style.position = 'fixed';
-  nav.style.top = '0';
-  nav.style.left = '0';
-  nav.style.right = '0';
-  nav.style.zIndex = '1000';
-  nav.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
-  app.appendChild(nav);
+  /* ---------- Theme ---------- */
+  const themeBtn = $("#theme-toggle");
+  // The site is dark by default; only an explicit choice (stored in localStorage) switches it.
+  const currentTheme = () => root.dataset.theme || "dark";
+  const applyThemeMeta = () => {
+    const meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", currentTheme() === "light" ? "#fcfcfd" : "#0d0c10");
+    if (themeBtn) themeBtn.setAttribute("aria-pressed", String(currentTheme() === "dark"));
+  };
+  applyThemeMeta();
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const next = currentTheme() === "dark" ? "light" : "dark";
+      const swap = () => {
+        root.classList.add("is-switching");
+        root.dataset.theme = next;
+        try { localStorage.setItem("theme", next); } catch (e) { /* private mode */ }
+        applyThemeMeta();
+        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("is-switching")));
+      };
+      if (document.startViewTransition && !reduce) document.startViewTransition(swap);
+      else swap();
+    });
+  }
 
-  const logo = document.createElement('div');
-  logo.innerHTML = `
-    <img src="assets/logo.png" alt="Logo" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;">
-    Portfolio
-  `;
-  logo.style.display = 'flex';
-  logo.style.alignItems = 'center';
-  logo.style.fontWeight = '700';
-  nav.appendChild(logo);
 
-  const links = document.createElement('div');
-  links.style.display = 'flex';
-  links.style.gap = '30px';
-  nav.appendChild(links);
-
-  const navItems = ['About Me', 'Skills', 'Project', 'Publications', 'Press and Media', 'Contact Me'];
-  navItems.forEach(item => {
-    const link = document.createElement('a');
-    link.href = `#${item.toLowerCase().replace(/\s/g, '-')}`;
-    link.textContent = item;
-    link.style.textDecoration = 'none';
-    link.style.color = '#000000';
-    link.style.fontSize = '18px';
-    link.style.fontWeight = '700';
-    links.appendChild(link);
-  });
-
-  const resumeLink = document.createElement('a');
-  resumeLink.href = 'https://drive.google.com/file/d/16FkYk_uq4zMyKnDadMp8W7W1RxD9IEG0/view?usp=sharing';
-  resumeLink.target = '_blank';
-  resumeLink.rel = 'noopener noreferrer';
-  resumeLink.download = '';
-  resumeLink.style.textDecoration = 'none';
-  resumeLink.style.display = 'inline-block';
-
-  const resumeButton = document.createElement('button');
-  resumeButton.innerHTML = `
-    Resume 
-    <img src="assets/download.png" alt="Download" style="width: 14px; height: 14px; margin-left: 5px; vertical-align: middle;">
-  `;
-  resumeButton.style.padding = '10px 20px';
-  resumeButton.style.background = '#000000';
-  resumeButton.style.color = '#FFFFFF';
-  resumeButton.style.border = 'none';
-  resumeButton.style.borderRadius = '5px';
-  resumeButton.style.cursor = 'pointer';
-  resumeButton.style.fontWeight = '700';
-  resumeButton.style.display = 'flex';
-  resumeButton.style.alignItems = 'center';
-
-  resumeLink.appendChild(resumeButton);
-  nav.appendChild(resumeLink);
-
-  gsap.from(nav, { duration: 1, y: -50, opacity: 0, ease: 'power3.out' });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileNav = (e) => {
-    if (e.matches) {
-      // Adjust nav padding and hide links by default
-      nav.style.padding = '15px 20px';
-      links.style.display = 'none';
-      resumeButton.style.padding = '8px 15px';
-      resumeButton.style.fontSize = '14px';
-
-      // Remove existing hamburger if present to avoid duplicates
-      if (nav.querySelector('.hamburger')) {
-        nav.removeChild(nav.querySelector('.hamburger'));
+  /* ---------- Copy email ---------- */
+  $$("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const value = btn.dataset.copy;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = value; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch (err) { /* ignore */ }
+        ta.remove();
       }
+      btn.classList.add("is-copied");
+      btn.setAttribute("aria-label", "Email address copied");
+      setTimeout(() => { btn.classList.remove("is-copied"); btn.removeAttribute("aria-label"); }, 1800);
+    });
+  });
 
-      // Add hamburger menu
-      const hamburger = document.createElement('div');
-      hamburger.className = 'hamburger';
-      hamburger.innerHTML = '☰';
-      hamburger.style.fontSize = '24px';
-      hamburger.style.cursor = 'pointer';
-      nav.appendChild(hamburger);
+  /* ---------- Mobile menu ---------- */
+  const menuBtn = $("#menu-btn");
+  const mobileMenu = $("#mobile-menu");
+  const setMenu = (open) => {
+    if (!menuBtn || !mobileMenu) return;
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    mobileMenu.classList.toggle("is-open", open);
+    document.body.style.overflow = open ? "hidden" : "";
+    if (window.__lenis) open ? window.__lenis.stop() : window.__lenis.start();
+  };
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => setMenu(menuBtn.getAttribute("aria-expanded") !== "true"));
+    $$("a", mobileMenu).forEach((a) => a.addEventListener("click", () => setMenu(false)));
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
+  }
 
-      // Toggle links visibility on hamburger click
-      hamburger.addEventListener('click', () => {
-        links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
-        links.style.flexDirection = 'column';
-        links.style.position = 'absolute';
-        links.style.top = '60px';
-        links.style.right = '20px';
-        links.style.background = '#FFFFFF';
-        links.style.padding = '10px';
-        links.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
-        links.style.gap = '15px'; // Adjusted gap for vertical layout
-      });
+  /* ---------- Smooth scroll (Lenis) ---------- */
+  let lenis = null;
+  if (!reduce && typeof window.Lenis !== "undefined" && finePointer) {
+    lenis = new window.Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true });
+    window.__lenis = lenis;
+    if (hasGsap) {
+      lenis.on("scroll", () => window.ScrollTrigger && window.ScrollTrigger.update());
+      gsap.ticker.add((t) => lenis.raf(t * 1000));
+      gsap.ticker.lagSmoothing(0);
     } else {
-      // Reset to desktop styles
-      nav.style.padding = '20px 40px';
-      links.style.display = 'flex';
-      links.style.flexDirection = 'row';
-      links.style.position = 'static';
-      links.style.background = 'none';
-      links.style.padding = '0';
-      links.style.boxShadow = 'none';
-      links.style.gap = '30px';
-      resumeButton.style.padding = '10px 20px';
-      resumeButton.style.fontSize = '16px';
+      const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+      requestAnimationFrame(raf);
+    }
+  }
+  // Anchor links: scroll with offset for the fixed nav.
+  const navH = () => ($("#nav") ? $("#nav").offsetHeight : 72);
+  $$('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href");
+      if (!id || id === "#") return;
+      const target = $(id);
+      if (!target) return;
+      e.preventDefault();
+      const y = target.getBoundingClientRect().top + window.scrollY - (id === "#top" ? 0 : navH() - 8);
+      if (lenis) lenis.scrollTo(y, { duration: 1.2, easing: (t) => 1 - Math.pow(1 - t, 4) });
+      else window.scrollTo({ top: y, behavior: reduce ? "auto" : "smooth" });
+      history.replaceState(null, "", id);
+    });
+  });
 
-      // Remove hamburger menu if present
-      if (nav.querySelector('.hamburger')) {
-        nav.removeChild(nav.querySelector('.hamburger'));
+  /* ---------- Nav state ---------- */
+  const nav = $("#nav");
+  let lastY = window.scrollY;
+  const onScroll = () => {
+    const y = window.scrollY;
+    if (nav) {
+      nav.classList.toggle("is-scrolled", y > 24);
+      nav.classList.toggle("is-hidden", y > lastY && y > 320 && Math.abs(y - lastY) > 4);
+    }
+    lastY = y;
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  if (lenis) lenis.on("scroll", onScroll);
+  onScroll();
+
+  // Active section link
+  const navLinks = $$(".nav__links a");
+  if (navLinks.length && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        navLinks.forEach((a) => a.setAttribute("aria-current", a.hash === "#" + en.target.id ? "true" : "false"));
+      });
+    }, { rootMargin: "-40% 0px -55% 0px", threshold: 0 });
+    $$("main section[id]").forEach((s) => io.observe(s));
+  }
+
+  /* ---------- Scroll progress ---------- */
+  const progress = $(".progress");
+  const updateProgress = () => {
+    if (!progress) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? Math.min(1, window.scrollY / max) : 0})`;
+  };
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  if (lenis) lenis.on("scroll", updateProgress);
+  updateProgress();
+
+  /* ---------- Magnetic buttons ---------- */
+  if (finePointer && !reduce && hasGsap) {
+    $$("[data-magnetic]").forEach((el) => {
+      const strength = 0.28;
+      const xTo = gsap.quickTo(el, "x", { duration: 0.45, ease: "power3.out" });
+      const yTo = gsap.quickTo(el, "y", { duration: 0.45, ease: "power3.out" });
+      el.addEventListener("pointermove", (e) => {
+        const r = el.getBoundingClientRect();
+        xTo((e.clientX - r.left - r.width / 2) * strength);
+        yTo((e.clientY - r.top - r.height / 2) * strength);
+      });
+      el.addEventListener("pointerleave", () => gsap.to(el, { x: 0, y: 0, duration: 0.8, ease: "elastic.out(1, 0.45)" }));
+    });
+  }
+
+  /* ---------- Product mock tabs ---------- */
+  $$("[data-mock]").forEach((mock) => {
+    const tabs = $$(".mk-tabs button", mock);
+    const views = $$(".mk-view", mock);
+    if (tabs.length < 2 || tabs.length !== views.length) return;
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => {
+        if (tab.classList.contains("is-on")) return;
+        tabs.forEach((t) => t.classList.toggle("is-on", t === tab));
+        views.forEach((v, n) => v.classList.toggle("is-on", n === i));
+      });
+    });
+  });
+
+  /* ---------- Reveal on scroll ---------- */
+  const revealEls = $$("[data-reveal], [data-reveal-stagger]");
+  if ("IntersectionObserver" in window && !reduce) {
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add("is-in");
+        obs.unobserve(en.target);
+      });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.05 });
+    revealEls.forEach((el) => io.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("is-in"));
+  }
+
+  /* ---------- Count-up stats ---------- */
+  const counters = $$("[data-count]");
+  const fmt = (n) => n.toLocaleString("en-US");
+  const renderCount = (el, v) => {
+    el.textContent = (el.dataset.prefix || "") + fmt(Math.round(v)) + (el.dataset.suffix || "");
+  };
+  if (counters.length) {
+    if (reduce || !hasGsap) counters.forEach((el) => renderCount(el, +el.dataset.count));
+    else {
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          const el = en.target, end = +el.dataset.count, obj = { v: 0 };
+          gsap.to(obj, { v: end, duration: 1.6, ease: "power2.out", onUpdate: () => renderCount(el, obj.v) });
+          obs.unobserve(el);
+        });
+      }, { threshold: 0.4 });
+      counters.forEach((el) => io.observe(el));
+    }
+  }
+
+  /* ---------- Case-study expanders ---------- */
+  $$(".case__toggle").forEach((btn) => {
+    const panel = $("#" + btn.getAttribute("aria-controls"));
+    if (!panel) return;
+    const inner = panel.firstElementChild;
+    btn.addEventListener("click", () => {
+      const open = btn.getAttribute("aria-expanded") !== "true";
+      btn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        panel.hidden = false;
+        panel.classList.add("is-open");
+        const h = inner.getBoundingClientRect().height;
+        if (hasGsap && !reduce) {
+          gsap.fromTo(panel, { height: 0 }, { height: h, duration: 0.7, ease: "power3.inOut", onComplete: () => { panel.style.height = "auto"; window.ScrollTrigger && ScrollTrigger.refresh(); } });
+          gsap.fromTo($$(":scope > *", inner), { y: 16, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.06, ease: "power3.out", delay: 0.2 });
+        } else {
+          panel.style.height = "auto";
+        }
+      } else {
+        const h = inner.getBoundingClientRect().height;
+        if (hasGsap && !reduce) {
+          gsap.fromTo(panel, { height: h }, { height: 0, duration: 0.5, ease: "power3.inOut", onComplete: () => { panel.hidden = true; panel.classList.remove("is-open"); panel.style.height = ""; window.ScrollTrigger && ScrollTrigger.refresh(); } });
+        } else {
+          panel.hidden = true; panel.classList.remove("is-open"); panel.style.height = "";
+        }
       }
-    }
-  };
-
-  // Add event listener for screen size changes and run initial check
-  mediaQuery.addEventListener('change', handleMobileNav);
-  handleMobileNav(mediaQuery);
-};
-createNav();
-
-// Add a spacer to prevent content from being hidden under the fixed nav
-const navSpacer = document.createElement('div');
-navSpacer.style.height = '80px';
-app.appendChild(navSpacer);
-
-// Hero Section
-const createHero = () => {
-  const hero = document.createElement('section');
-  hero.id = 'hero';
-  hero.style.display = 'flex';
-  hero.style.justifyContent = 'flex-start';
-  hero.style.alignItems = 'center';
-  hero.style.padding = '50px 40px';
-  hero.style.background = '#FFFFFF';
-  hero.style.gap = '20px';
-  app.appendChild(hero);
-
-  const textContainer = document.createElement('div');
-  textContainer.style.maxWidth = '50%';
-  hero.appendChild(textContainer);
-
-  const greeting = document.createElement('h1');
-  greeting.innerHTML = `Hello I'm <span style="font-weight: 900;">John Ikpeme.</span>`;
-  greeting.style.fontSize = '48px';
-  greeting.style.fontWeight = '400';
-  greeting.style.color = '#000000';
-  textContainer.appendChild(greeting);
-
-  const title = document.createElement('h2');
-  title.textContent = 'Software & Machine Learning Engineer';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '700';
-  title.style.color = '#000000';
-  title.style.margin = '10px 0';
-  textContainer.appendChild(title);
-
-  const bio = document.createElement('p');
-  bio.textContent = "I thrive on turning raw data into actionable insights, building intelligent systems, and crafting seamless user experiences. Whether it’s developing machine learning models, building scalable backend services, automating workflows, creating real-time monitoring tools, or designing interactive web applications, I bring a hands-on approach to solving problems with software and data. With over six years of experience, I bridge the gap between software engineering, data science, automation, and front-end development, delivering scalable, reliable, and impactful products end-to-end.";
-  bio.style.fontSize = '16px';
-  bio.style.fontWeight = '400';
-  bio.style.color = '#666666';
-  bio.style.lineHeight = '1.6';
-  textContainer.appendChild(bio);
-
-  const socialIcons = document.createElement('div');
-  socialIcons.style.display = 'flex';
-  socialIcons.style.gap = '20px';
-  socialIcons.style.marginTop = '50px';
-  textContainer.appendChild(socialIcons);
-
-  const socials = [
-    { name: 'github', link: 'https://github.com/Johnikpeme' },
-    { name: 'linkedin', link: 'https://www.linkedin.com/in/john-i-02b82397/' },
-    { name: 'twitter', link: 'https://x.com/johnikpeme_' }
-  ];
-
-  socials.forEach(social => {
-    const iconLink = document.createElement('a');
-    iconLink.href = social.link;
-    iconLink.target = '_blank';
-    iconLink.rel = 'noopener noreferrer';
-
-    const iconContainer = document.createElement('div');
-    iconContainer.style.width = '50px';
-    iconContainer.style.height = '50px';
-    iconContainer.style.background = '#FFFFFF';
-    iconContainer.style.border = '2px solid #000000';
-    iconContainer.style.borderRadius = '5px';
-    iconContainer.style.display = 'flex';
-    iconContainer.style.alignItems = 'center';
-    iconContainer.style.justifyContent = 'center';
-    iconContainer.style.transition = 'all 0.3s ease-in-out';
-
-    const icon = document.createElement('img');
-    icon.src = `assets/${social.name}.png`;
-    icon.alt = `${social.name} icon`;
-    icon.style.width = '30px';
-    icon.style.height = '30px';
-    icon.style.transition = 'all 0.3s ease-in-out';
-
-    iconContainer.addEventListener('mouseenter', () => {
-      iconContainer.style.background = '#000000';
-      icon.src = `assets/${social.name}_active.png`;
     });
-
-    iconContainer.addEventListener('mouseleave', () => {
-      iconContainer.style.background = '#FFFFFF';
-      icon.src = `assets/${social.name}.png`;
-    });
-
-    iconContainer.appendChild(icon);
-    iconLink.appendChild(iconContainer);
-    socialIcons.appendChild(iconLink);
   });
 
-  const imageContainer = document.createElement('div');
-  imageContainer.style.maxWidth = '45%';
-  imageContainer.style.overflow = 'hidden';
-  imageContainer.style.display = 'flex';
-  imageContainer.style.justifyContent = 'flex-start';
-  hero.appendChild(imageContainer);
+  /* ---------- Hero entrance ---------- */
+  const heroTitle = $("#hero-title");
+  const heroBits = $$("[data-hero]");
+  const runHero = () => {
+    if (!hasGsap || reduce || !heroTitle) {
+      heroBits.forEach((el) => { el.style.opacity = ""; el.style.transform = ""; });
+      return;
+    }
+    gsap.registerPlugin(ScrollTrigger);
+    const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
 
-  const image = document.createElement('img');
-  image.src = './assets/picture.png';
-  image.style.width = '110%';
-  image.style.height = 'auto';
-  image.style.objectFit = 'contain';
-  imageContainer.appendChild(image);
-
-  gsap.from(textContainer, { duration: 1, x: -100, opacity: 0, ease: 'power3.out' });
-  gsap.from(imageContainer, { duration: 1, x: 100, opacity: 0, ease: 'power3.out', delay: 0.5 });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileHero = (e) => {
-    if (e.matches) {
-      hero.style.flexDirection = 'column';
-      hero.style.padding = '30px 20px';
-      textContainer.style.maxWidth = '100%';
-      imageContainer.style.maxWidth = '100%';
-      greeting.style.fontSize = '32px';
-      title.style.fontSize = '24px';
-      bio.style.fontSize = '14px';
-      socialIcons.style.marginTop = '20px';
+    let lines = null;
+    if (window.SplitText) {
+      try {
+        gsap.registerPlugin(SplitText);
+        const split = SplitText.create(heroTitle, { type: "lines", linesClass: "line", aria: "auto" });
+        lines = split.lines;
+      } catch (e) { lines = null; }
+    }
+    if (lines && lines.length) {
+      gsap.set(heroTitle, { autoAlpha: 1 });
+      tl.from(lines, { yPercent: 115, duration: 1.15, stagger: 0.09 }, 0.1);
     } else {
-      hero.style.flexDirection = 'row';
-      hero.style.padding = '50px 40px';
-      textContainer.style.maxWidth = '50%';
-      imageContainer.style.maxWidth = '45%';
-      greeting.style.fontSize = '48px';
-      title.style.fontSize = '36px';
-      bio.style.fontSize = '16px';
-      socialIcons.style.marginTop = '50px';
+      tl.from(heroTitle, { y: 40, autoAlpha: 0, duration: 1.1 }, 0.1);
     }
+    tl.to(heroBits, { y: 0, autoAlpha: 1, duration: 1, stagger: 0.1 }, 0.45);
   };
-  mediaQuery.addEventListener('change', handleMobileHero);
-  handleMobileHero(mediaQuery);
-};
-createHero();
-
-// Skills Section
-const createSkills = () => {
-  const skills = document.createElement('section');
-  skills.id = 'skills';
-  skills.style.padding = '50px 40px';
-  skills.style.background = '#FFFFFF';
-  app.appendChild(skills);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'My <span style="font-weight: 700;">Tech Stack</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.color = '#000000';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '40px';
-  skills.appendChild(title);
-
-  const skillsGrid = document.createElement('div');
-  skillsGrid.style.display = 'grid';
-  skillsGrid.style.gridTemplateColumns = 'repeat(5, 1fr)';
-  skillsGrid.style.gap = '20px';
-  skillsGrid.style.maxWidth = '1000px';
-  skillsGrid.style.margin = '0 auto';
-  skills.appendChild(skillsGrid);
-
-  const skillItems = [
-    { name: 'Git', icon: 'https://img.icons8.com/?size=100&id=106562&format=png&color=000000/50x50' },
-    { name: 'Postgres', icon: 'https://img.icons8.com/?size=100&id=36440&format=png&color=000000/50x50' },
-    { name: 'MsSql', icon: 'https://img.icons8.com/?size=100&id=11625&format=png&color=000000/50x50' },
-    { name: 'MongoDB', icon: './assets/mongo.png' },
-    { name: 'Power-Bi', icon: 'https://img.icons8.com/?size=100&id=QMTbsd0FVhHS&format=png&color=000000/50x50' },
-    { name: 'Tableau', icon: 'https://img.icons8.com/?size=100&id=TH2qcEeVxMYI&format=png&color=000000/50x50' },
-    { name: 'Python', icon: 'https://img.icons8.com/?size=100&id=101379&format=png&color=000000/50x50' },
-    { name: 'Scikit-learn', icon: 'https://img.icons8.com/?size=100&id=jB3Wvby1qc6e&format=png&color=000000/50x50' },
-    { name: 'Keras', icon: 'https://img.icons8.com/?size=100&id=XcSgtbIpgK6W&format=png&color=000000/50x50' },
-    { name: 'TensorFlow', icon: './assets/tensor.png' },
-    { name: 'React Js', icon: 'https://img.icons8.com/?size=100&id=122637&format=png&color=000000/50x50' },
-    { name: 'Javascript', icon: 'https://img.icons8.com/?size=100&id=39854&format=png&color=000000/50x50' },
-    { name: 'Power Automate', icon: './assets/automate.png' },
-    { name: 'Figma', icon: 'https://img.icons8.com/?size=100&id=amXjtNWVYSKP&format=png&color=000000/50x50' },
-    { name: 'Flask', icon: 'https://img.icons8.com/?size=100&id=MHcMYTljfKOr&format=png&color=000000' },
-  ];
-
-  skillItems.forEach((skill, index) => {
-    const skillCard = document.createElement('div');
-    skillCard.style.display = 'flex';
-    skillCard.style.flexDirection = 'column';
-    skillCard.style.alignItems = 'center';
-    skillCard.style.padding = '20px';
-    skillCard.style.background = '#F5F5F5';
-    skillCard.style.borderRadius = '10px';
-    skillCard.style.transition = 'background 0.3s ease';
-    skillsGrid.appendChild(skillCard);
-
-    skillCard.addEventListener('mouseenter', () => {
-      skillCard.style.background = '#E0E0E0';
-    });
-
-    skillCard.addEventListener('mouseleave', () => {
-      skillCard.style.background = '#F5F5F5';
-    });
-
-    const icon = document.createElement('div');
-    icon.style.width = '50px';
-    icon.style.height = '50px';
-    icon.style.background = `url(${skill.icon})`;
-    icon.style.backgroundSize = 'contain';
-    icon.style.backgroundRepeat = 'no-repeat';
-    skillCard.appendChild(icon);
-
-    const name = document.createElement('p');
-    name.textContent = skill.name;
-    name.style.fontSize = '16px';
-    name.style.fontWeight = '400';
-    name.style.color = '#000000';
-    name.style.marginTop = '10px';
-    skillCard.appendChild(name);
-
-    gsap.from(skillCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.1 });
-  });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileSkills = (e) => {
-    if (e.matches) {
-      skills.style.padding = '30px 20px';
-      skillsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-      title.style.fontSize = '28px';
-    } else {
-      skills.style.padding = '50px 40px';
-      skillsGrid.style.gridTemplateColumns = 'repeat(5, 1fr)';
-      title.style.fontSize = '36px';
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileSkills);
-  handleMobileSkills(mediaQuery);
-};
-createSkills();
-
-// Experience Section
-const createExperience = () => {
-  const experience = document.createElement('section');
-  experience.id = 'experience';
-  experience.style.padding = '50px 40px';
-  experience.style.background = '#000000';
-  experience.style.color = '#FFFFFF';
-  app.appendChild(experience);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'My <span style="font-weight: 700;">Experience</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '40px';
-  experience.appendChild(title);
-
-  const expList = document.createElement('div');
-  expList.style.maxWidth = '90%';
-  expList.style.margin = '0 auto';
-  experience.appendChild(expList);
-
-  const experiences = [
-    {
-      company: 'Sterling Bank',
-      logo: 'assets/sterling.png',
-      role: 'Software Engineer & Enterprise Intelligence Analyst',
-      date: 'Mar 2023 - Present',
-      description: 'At Sterling Bank, I spearhead the development and optimization of enterprise intelligence tools, focusing on real-time monitoring, automation, and AI-driven insights. Key contributions include leading the OneMonitor platform for tracking digital banking performance, automating data pipelines with Python and SQL, deploying ML models for efficient ticket routing and fraud detection, and implementing disaster recovery solutions. These efforts have enhanced operational efficiency, reduced resolution times by up to 60%, and empowered data-driven decision-making across channels like OneBank, Specta, and USSD.'
-    },
-    {
-      company: 'Dash Studios',
-      logo: 'assets/dash.png',
-      role: 'Web Developer & Data Scientist',
-      date: 'Nov 2019 - Present',
-      description: 'As a Web Developer & Data Scientist at Dash Studios, I architected and maintained the Nouns Hunt platform, scaling it to over 10,000 users across 65 countries and securing awards like Debut of the Year. I engineered responsive web interfaces and integrated data pipelines using SQL and Tableau for user behavior analysis, enabling data-driven enhancements in game mechanics and marketing. These initiatives drove a 90% increase in player retention through optimized UX and predictive analytics on engagement metrics.'
-    },
-    {
-      company: 'UAC',
-      logo: 'assets/uac.png',
-      role: 'Data Analyst',
-      date: 'Jan 2021 - Dec 2021',
-      description: 'Increased sales by 40% in Cross River’s South Region by implementing talent forecasting and predictive modeling. Optimized team structures and efficiency using data-driven workforce strategies. Developed machine learning models with Python and scikit-learn, driving higher platform adoption among South-South distributors.'
-    }
-  ];
-
-  experiences.forEach((exp, index) => {
-    const expCard = document.createElement('div');
-    expCard.style.padding = '20px';
-    expCard.style.background = '#1A1A1A';
-    expCard.style.borderRadius = '10px';
-    expCard.style.marginBottom = '20px';
-    expList.appendChild(expCard);
-
-    const companyDiv = document.createElement('div');
-    companyDiv.style.display = 'flex';
-    companyDiv.style.alignItems = 'center';
-
-    if (exp.logo) {
-      const logo = document.createElement('img');
-      logo.src = exp.logo;
-      logo.alt = `${exp.company} Logo`;
-      logo.style.height = '24px';
-      logo.style.marginRight = '8px';
-      companyDiv.appendChild(logo);
-    }
-
-    const company = document.createElement('h3');
-    company.textContent = exp.company;
-    company.style.fontSize = '24px';
-    company.style.fontWeight = '700';
-    company.style.color = '#FFFFFF';
-    companyDiv.appendChild(company);
-    expCard.appendChild(companyDiv);
-
-    const role = document.createElement('p');
-    role.textContent = exp.role;
-    role.style.fontSize = '18px';
-    role.style.fontWeight = '400';
-    role.style.color = '#FFFFFF';
-    role.style.margin = '5px 0';
-    expCard.appendChild(role);
-
-    const date = document.createElement('p');
-    date.textContent = exp.date;
-    date.style.fontSize = '16px';
-    date.style.fontWeight = '400';
-    date.style.color = '#666666';
-    date.style.marginBottom = '10px';
-    expCard.appendChild(date);
-
-    const description = document.createElement('p');
-    description.textContent = exp.description;
-    description.style.fontSize = '16px';
-    description.style.fontWeight = '400';
-    description.style.color = '#CCCCCC';
-    description.style.lineHeight = '1.6';
-    expCard.appendChild(description);
-
-    // Add Milestones for Sterling Bank
-    if (exp.company === 'Sterling Bank') {
-      const milestonesContainer = document.createElement('details');
-      milestonesContainer.style.marginTop = '20px';
-      milestonesContainer.style.border = '1px solid #333';
-      milestonesContainer.style.borderRadius = '5px';
-      milestonesContainer.style.overflow = 'hidden';
-
-      const summary = document.createElement('summary');
-      summary.textContent = 'Milestones';
-      summary.style.padding = '10px 15px';
-      summary.style.background = '#2A2A2A';
-      summary.style.fontSize = '18px';
-      summary.style.fontWeight = '700';
-      summary.style.color = '#FFFFFF';
-      summary.style.cursor = 'pointer';
-      summary.style.listStyle = 'none'; // Remove default marker
-      milestonesContainer.appendChild(summary);
-
-      const milestonesList = document.createElement('ul');
-      milestonesList.style.padding = '0 20px 20px';
-      milestonesList.style.margin = '0';
-      milestonesList.style.listStyleType = 'none';
-
-      const milestones = [
-        'Redeveloped and enhanced OneMonitor: Optimized real-time metrics, UI/UX overhaul, expanded coverage to new services (Doubble, Specta, etc.), improved error traceability (60% faster resolution), and established Git-based CI/CD with 4–6 weekly updates.',
-        'Optimized deployment processes: Refactored for environment configs, automated GitHub-to-server pulls, boosting delivery speed/reliability by 80%.',
-        'Automated NIBSS Market Data Processing: Python script for weekly ingestion of metrics, slashing report time from hours to minutes.',
-        'Deployed ML Ticket Classification Model: Supervised model on 2024 FreshService data, categorizing/routing tickets and cutting resolution time by 55%.',
-        'Built Fraud Monitoring Dashboard: Real-time detection of multi-channel suspicious activity for proactive interventions.',
-        'Implemented Disaster Recovery (DR) Setup: Replicated environment for critical DBs, ensuring OneMonitor continuity during failures.',
-        'Designed OneMonitor v2: Figma prototypes, backend engine for incident tracking and health checks.',
-        'Redesigned Self-Service Portal: Figma UI improvements, integrated AI chatbot and predictive analytics.',
-        'Automated Incident Reporting: Power Automate for hourly tracking and weekly summaries.',
-        'Conducted CX Analytics: In-depth reports for products like AltBank, Specta, and i-Invest.',
-        'Developed OneInsight Platform: Unified tool for sentiment/location analysis and reporting, reducing prep time by 95%.',
-        'Created Predictive Models: Downtime forecaster (50% faster diagnostics) and transaction volume predictor.',
-        'Led GLPI ITSM Project: In-house PHP/JS alternative to FreshService, designing modules for incidents/changes/assets, projected to save hundreds of thousands annually.'
-      ];
-
-      milestones.forEach(milestone => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>• ${milestone}</strong>`;
-        li.style.fontSize = '14px';
-        li.style.color = '#CCCCCC';
-        li.style.lineHeight = '1.5';
-        li.style.marginBottom = '10px';
-        li.style.padding = '5px 0';
-        milestonesList.appendChild(li);
-      });
-
-      milestonesContainer.appendChild(milestonesList);
-      expCard.appendChild(milestonesContainer);
-    }
-
-    // Add Milestones for Dash Studios
-    if (exp.company === 'Dash Studios') {
-      const milestonesContainer = document.createElement('details');
-      milestonesContainer.style.marginTop = '20px';
-      milestonesContainer.style.border = '1px solid #333';
-      milestonesContainer.style.borderRadius = '5px';
-      milestonesContainer.style.overflow = 'hidden';
-
-      const summary = document.createElement('summary');
-      summary.textContent = 'Milestones';
-      summary.style.padding = '10px 15px';
-      summary.style.background = '#2A2A2A';
-      summary.style.fontSize = '18px';
-      summary.style.fontWeight = '700';
-      summary.style.color = '#FFFFFF';
-      summary.style.cursor = 'pointer';
-      summary.style.listStyle = 'none'; // Remove default marker
-      milestonesContainer.appendChild(summary);
-
-      const milestonesList = document.createElement('ul');
-      milestonesList.style.padding = '0 20px 20px';
-      milestonesList.style.margin = '0';
-      milestonesList.style.listStyleType = 'none';
-
-      const milestones = [
-        'Engineered full-stack web development for Nouns Hunt website, utilizing HTML5 and JavaScript to create an immersive, responsive experience',
-        'Integrated SQL databases and Tableau visualizations for real-time user behavior analysis, informing iterative feature enhancements.',
-        'Conducted A/B testing and predictive modeling to optimize player engagement, resulting in a 90% retention boost.',
-        'Leveraged Google Analytics for cross-country user insights, driving targeted marketing strategies and user base growth to 20,000+ players.',
-        'Secured Debut of the Year award for debut title, Nouns Hunt'
-      ];
-
-      milestones.forEach(milestone => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>• ${milestone}</strong>`;
-        li.style.fontSize = '14px';
-        li.style.color = '#CCCCCC';
-        li.style.lineHeight = '1.5';
-        li.style.marginBottom = '10px';
-        li.style.padding = '5px 0';
-        milestonesList.appendChild(li);
-      });
-
-      milestonesContainer.appendChild(milestonesList);
-      expCard.appendChild(milestonesContainer);
-    }
-
-    gsap.from(expCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
-  });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileExperience = (e) => {
-    if (e.matches) {
-      experience.style.padding = '30px 20px';
-      title.style.fontSize = '28px';
-      expList.style.maxWidth = '100%';
-    } else {
-      experience.style.padding = '50px 40px';
-      title.style.fontSize = '36px';
-      expList.style.maxWidth = '90%';
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileExperience);
-  handleMobileExperience(mediaQuery);
-};
-createExperience();
-
-// About Me Section
-const createAbout = () => {
-  const about = document.createElement('section');
-  about.id = 'about-me';
-  about.style.display = 'flex';
-  about.style.justifyContent = 'space-between';
-  about.style.alignItems = 'center';
-  about.style.padding = '50px 40px';
-  about.style.background = '#FFFFFF';
-  app.appendChild(about);
-
-  const imageContainer = document.createElement('div');
-  imageContainer.style.maxWidth = '45%';
-  imageContainer.style.overflow = 'hidden';
-  imageContainer.style.display = 'flex';
-  imageContainer.style.justifyContent = 'flex-end';
-  imageContainer.style.alignItems = 'center';
-  imageContainer.style.marginLeft = '5%';
-  about.appendChild(imageContainer);
-
-  const image = document.createElement('img');
-  image.src = './assets/me.png';
-  image.style.width = '100%';
-  image.style.height = 'auto';
-  image.style.objectFit = 'contain';
-  imageContainer.appendChild(image);
-
-  const textContainer = document.createElement('div');
-  textContainer.style.maxWidth = '50%';
-  about.appendChild(textContainer);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'About <span style="font-weight: 700;">Me</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.color = '#000000';
-  title.style.marginBottom = '20px';
-  textContainer.appendChild(title);
-
-  const description = document.createElement('p');
-  description.textContent = "I’m a passionate Software Engineer, Data Scientist, and Machine Learning Engineer who thrives at the intersection of data, AI, and elegant user interfaces. I love transforming complex data into meaningful insights, building intelligent end-to-end systems, and crafting seamless web experiences. My journey began in web development, but curiosity pushed me deeper into machine learning, predictive modeling, and data-driven problem-solving. Today, I specialize in leveraging Python, TensorFlow, React.js, and Next.js to build scalable applications, from backend services and automation pipelines to interactive dashboards and AI-powered tools. I enjoy challenges that let me optimize systems, design intuitive products, and push the boundaries of what’s possible with software and data. Outside of tech, I’m a huge football fan, a gamer at heart, and someone who enjoys designing interactive experiences. And yes, I absolutely love dogs. You can explore my projects on GitHub or catch me on Twitter where I share updates, insights, and the occasional banter.";
-  description.style.fontSize = '16px';
-  description.style.fontWeight = '400';
-  description.style.color = '#666666';
-  description.style.lineHeight = '1.6';
-  textContainer.appendChild(description);
-
-  gsap.from(imageContainer, { duration: 1, x: -100, opacity: 0, ease: 'power3.out' });
-  gsap.from(textContainer, { duration: 1, x: 100, opacity: 0, ease: 'power3.out', delay: 0.5 });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileAbout = (e) => {
-    if (e.matches) {
-      about.style.flexDirection = 'column';
-      about.style.padding = '30px 20px';
-      imageContainer.style.maxWidth = '100%';
-      textContainer.style.maxWidth = '100%';
-      title.style.fontSize = '28px';
-      description.style.fontSize = '14px';
-    } else {
-      about.style.flexDirection = 'row';
-      about.style.padding = '50px 40px';
-      imageContainer.style.maxWidth = '45%';
-      textContainer.style.maxWidth = '50%';
-      title.style.fontSize = '36px';
-      description.style.fontSize = '16px';
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileAbout);
-  handleMobileAbout(mediaQuery);
-};
-createAbout();
-
-// Projects Section
-const createProjects = () => {
-  const projects = document.createElement('section');
-  projects.id = 'project';
-  projects.style.padding = '50px 40px';
-  projects.style.background = '#000000';
-  projects.style.color = '#FFFFFF';
-  app.appendChild(projects);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'My <span style="font-weight: 700;">Projects</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '40px';
-  projects.appendChild(title);
-
-  const projectList = document.createElement('div');
-  projectList.style.maxWidth = '1000px';
-  projectList.style.margin = '0 auto';
-  projects.appendChild(projectList);
-
-  const projectData = [
-    {
-      number: '01',
-      title: 'Feeling Flow',
-      description: "Feelin’ Flow is an AI-powered music recommendation web app that curates the perfect Spotify playlist based on your emotions. Whether you type in how you feel or let the app analyze your facial expression using AI and machine learning, Feelin’ Flow instantly understands your mood and delivers a personalized playlist that matches your vibe. Built with React and JavaScript on the front end and powered by a Python-based backend, the app seamlessly integrates with Spotify to enhance your listening experience.",
-      image: 'assets/pd1.png',
-      projectLink: 'https://youtu.be/OcaeDJX6k7w',
-      githubLink: 'https://github.com/Johnikpeme/spotify-emoter'
-    },
-    {
-      number: '02',
-      title: 'The Christmas Company',
-      description: "The Christmas Company is a comprehensive e-commerce platform designed for seamless online shopping of festive items. Featuring dynamic product catalogs, intuitive shopping cart functionality, and secure checkout processes, it brings holiday cheer to users worldwide. Developed entirely with JavaScript and deployed on Vercel for optimal performance.",
-      image: 'assets/christmas.jpg',
-      projectLink: 'https://christmas-shop-ten.vercel.app/',
-      githubLink: 'https://github.com/Johnikpeme/christmas-shop'
-    },
-    {
-      number: '03',
-      title: 'Planet Vault',
-      description: "PlanetVault is a futuristic web app that lets users explore and purchase unique planets in a dystopian multiverse. With an interactive catalog, planet slideshows, filters, and cart functionality, it delivers an immersive e-commerce experience. Built using HTML5, CSS3, and JavaScript, PlanetVault showcases dynamic front-end development and UI design.",
-      image: 'assets/pd2.png',
-      projectLink: 'https://johnikpeme.github.io/planet-vault/',
-      githubLink: 'https://github.com/Johnikpeme/planet-vault'
-    },
-    {
-      number: '04',
-      title: 'Airbnb Listings & Pricing',
-      description: "This study, conducted using Tableau with data across 10 major cities, investigates whether Airbnb effectively addresses the initial problem it aimed to solve or if hotels provide superior packages in comparison.",
-      image: 'assets/pd3.png',
-      projectLink: 'https://public.tableau.com/app/profile/john.ikpeme/viz/shared/DYY2YQKRB',
-      githubLink: 'https://github.com/Johnikpeme'
-    },
-    {
-      number: '05',
-      title: 'Lendsqr UI Redesign',
-      description: "I redesigned the Lendsqr dashboard and user details page to match a more modern slick look",
-      image: 'assets/lendsqr.png',
-      projectLink: 'https://john-ikpeme-lendsqr-fe-test-bay.vercel.app/',
-      githubLink: 'https://github.com/Johnikpeme/lendsqr-fe-test'
-    },
-  ];
-
-  projectData.forEach((proj, index) => {
-    const projectCard = document.createElement('div');
-    projectCard.style.display = 'flex';
-    projectCard.style.alignItems = 'center';
-    projectCard.style.marginBottom = '40px';
-    projectCard.style.gap = '30px';
-    projectList.appendChild(projectCard);
-
-    const image = document.createElement('div');
-    image.style.width = '45%';
-    image.style.height = '300px';
-    image.style.background = `url(${proj.image})`;
-    image.style.backgroundSize = 'cover';
-    image.style.backgroundPosition = 'center';
-    image.style.backgroundRepeat = 'no-repeat';
-    image.style.borderRadius = '8px';
-    projectCard.appendChild(image);
-
-    const textContainer = document.createElement('div');
-    textContainer.style.width = '55%';
-    textContainer.style.display = 'flex';
-    textContainer.style.flexDirection = 'column';
-    textContainer.style.gap = '10px';
-    projectCard.appendChild(textContainer);
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.gap = '15px';
-    textContainer.appendChild(header);
-
-    const number = document.createElement('h3');
-    number.textContent = proj.number;
-    number.style.fontSize = '32px';
-    number.style.fontWeight = '700';
-    number.style.color = '#FF8C00';
-    header.appendChild(number);
-
-    const title = document.createElement('h4');
-    title.textContent = proj.title;
-    title.style.fontSize = '24px';
-    title.style.fontWeight = '700';
-    title.style.color = '#FFFFFF';
-    header.appendChild(title);
-
-    const description = document.createElement('p');
-    description.textContent = proj.description;
-    description.style.fontSize = '16px';
-    description.style.fontWeight = '400';
-    description.style.marginTop = '-25px';
-    description.style.color = '#CCCCCC';
-    description.style.lineHeight = '1.6';
-    description.style.maxWidth = '90%';
-    textContainer.appendChild(description);
-
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.marginTop = '-15px';
-    textContainer.appendChild(buttonContainer);
-
-    const projectLink = document.createElement('a');
-    projectLink.href = proj.projectLink;
-    projectLink.textContent = index === 0 ? 'Watch Demo' : 'View Project';
-    projectLink.style.display = 'inline-block';
-    projectLink.style.marginRight = '10px';
-    projectLink.style.padding = '8px 15px';
-    projectLink.style.background = '#FFFFFF';
-    projectLink.style.color = '#000000';
-    projectLink.style.fontSize = '14px';
-    projectLink.style.fontWeight = '700';
-    projectLink.style.textDecoration = 'none';
-    projectLink.style.borderRadius = '5px';
-    projectLink.target = '_blank';
-    buttonContainer.appendChild(projectLink);
-
-    const githubLink = document.createElement('a');
-    githubLink.href = proj.githubLink;
-    githubLink.textContent = 'GitHub Repo';
-    githubLink.style.display = 'inline-block';
-    githubLink.style.padding = '8px 15px';
-    githubLink.style.background = '#FF8C00';
-    githubLink.style.color = '#FFFFFF';
-    githubLink.style.fontSize = '14px';
-    githubLink.style.fontWeight = '700';
-    githubLink.style.textDecoration = 'none';
-    githubLink.style.borderRadius = '5px';
-    githubLink.target = '_blank';
-    buttonContainer.appendChild(githubLink);
-
-    gsap.from(projectCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
-  });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileProjects = (e) => {
-    if (e.matches) {
-      projects.style.padding = '30px 20px';
-      title.style.fontSize = '28px';
-      projectList.style.maxWidth = '100%';
-      projectData.forEach((_, index) => {
-        const card = projectList.children[index];
-        card.style.flexDirection = 'column';
-        card.children[0].style.width = '100%'; // Image
-        card.children[0].style.height = '200px';
-        card.children[1].style.width = '100%'; // Text
-      });
-    } else {
-      projects.style.padding = '50px 40px';
-      title.style.fontSize = '36px';
-      projectList.style.maxWidth = '1000px';
-      projectData.forEach((_, index) => {
-        const card = projectList.children[index];
-        card.style.flexDirection = 'row';
-        card.children[0].style.width = '45%';
-        card.children[0].style.height = '300px';
-        card.children[1].style.width = '55%';
-      });
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileProjects);
-  handleMobileProjects(mediaQuery);
-};
-createProjects();
-
-// Publications Section
-const createPublications = () => {
-  const publications = document.createElement('section');
-  publications.id = 'publications';
-  publications.style.padding = '50px 40px';
-  publications.style.background = '#000000';
-  publications.style.color = '#FFFFFF';
-  app.appendChild(publications);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'My <span style="font-weight: 700;">Publications</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '40px';
-  publications.appendChild(title);
-
-  const publicationList = document.createElement('div');
-  publicationList.style.maxWidth = '1000px';
-  publicationList.style.margin = '0 auto';
-  publications.appendChild(publicationList);
-
-  const publicationData = [
-    {
-      number: '01',
-      title: 'The Past, Present & Future of Money/Banking',
-      description: "The evolution of banking spans from traditional brick-and-mortar institutions to today’s digital and AI-driven financial ecosystems. In the past, banking relied on physical transactions and paper-based processes. The present is defined by fintech innovations, mobile banking, and decentralized finance (DeFi), enhancing accessibility and efficiency. Looking ahead, the future of banking will be shaped by AI, blockchain, and embedded finance, offering hyper-personalized experiences and seamless financial integration into daily life.",
-      image: 'https://media.newyorker.com/photos/5d38cd863212860009902607/master/w_2560%2Cc_limit/190805_r34727.jpg',
-      articleLink: 'https://medium.com/@johnprecious88/the-past-present-future-of-money-banking-1c766eb984f3'
-    },
-    {
-      number: '02',
-      title: 'Current State of Casual Games in Africa',
-      description: "The state of casual gaming in Africa is rapidly evolving, driven by increasing smartphone penetration, affordable internet access, and a growing young population. The report highlights how local developers are tapping into culturally relevant themes, while global companies are expanding their presence. Monetization remains a challenge due to low purchasing power, but ad-based and freemium models are gaining traction. Looking ahead, the sector is poised for significant growth with improved infrastructure, rising esports engagement, and increased investment in gaming startups across the continent.",
-      image: 'assets/pub2.jpg',
-      articleLink: 'https://medium.com/@johnprecious88/current-state-of-casual-games-in-africa-a-deep-dive-079759a1e44d'
-    },
-    {
-      number: '03',
-      title: 'Analyzing the Titanic Dataset: A Story of Tragedy and Survival',
-      description: "Over the weekend, I watched the movie Titanic and was once again reminded of the harrowing tragedy that unfolded over a century ago. As a data analyst, I couldn’t help but wonder: what insights could we gain from the available data about the passengers on board? What factors contributed to their chances of survival, and what can we learn from this historical event?",
-      image: 'assets/pub3.jpg',
-      articleLink: 'https://medium.com/dev-genius/analyzing-the-titanic-dataset-a-story-of-tragedy-and-survival-48883b2f2d48'
-    }
-  ];
-
-  publicationData.forEach((pub, index) => {
-    const publicationCard = document.createElement('div');
-    publicationCard.style.display = 'flex';
-    publicationCard.style.alignItems = 'center';
-    publicationCard.style.marginBottom = '40px';
-    publicationCard.style.gap = '30px';
-    publicationList.appendChild(publicationCard);
-
-    const image = document.createElement('div');
-    image.style.width = '45%';
-    image.style.height = '300px';
-    image.style.background = `url(${pub.image})`;
-    image.style.backgroundSize = 'cover';
-    image.style.backgroundPosition = 'center';
-    image.style.backgroundRepeat = 'no-repeat';
-    image.style.borderRadius = '8px';
-    publicationCard.appendChild(image);
-
-    const textContainer = document.createElement('div');
-    textContainer.style.width = '55%';
-    textContainer.style.display = 'flex';
-    textContainer.style.flexDirection = 'column';
-    textContainer.style.gap = '10px';
-    publicationCard.appendChild(textContainer);
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.gap = '15px';
-    textContainer.appendChild(header);
-
-    const number = document.createElement('h3');
-    number.textContent = pub.number;
-    number.style.fontSize = '32px';
-    number.style.fontWeight = '700';
-    number.style.color = '#FF8C00';
-    header.appendChild(number);
-
-    const title = document.createElement('h4');
-    title.textContent = pub.title;
-    title.style.fontSize = '24px';
-    title.style.fontWeight = '700';
-    title.style.color = '#FFFFFF';
-    header.appendChild(title);
-
-    const description = document.createElement('p');
-    description.textContent = pub.description;
-    description.style.fontSize = '16px';
-    description.style.fontWeight = '400';
-    description.style.marginTop = '-25px';
-    description.style.color = '#CCCCCC';
-    description.style.lineHeight = '1.6';
-    description.style.maxWidth = '90%';
-    textContainer.appendChild(description);
-
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.marginTop = '-15px';
-    textContainer.appendChild(buttonContainer);
-
-    const readMoreLink = document.createElement('a');
-    readMoreLink.href = pub.articleLink;
-    readMoreLink.textContent = 'Read More';
-    readMoreLink.style.display = 'inline-block';
-    readMoreLink.style.padding = '8px 15px';
-    readMoreLink.style.background = '#FFFFFF';
-    readMoreLink.style.color = '#000000';
-    readMoreLink.style.fontSize = '14px';
-    readMoreLink.style.fontWeight = '700';
-    readMoreLink.style.textDecoration = 'none';
-    readMoreLink.style.borderRadius = '5px';
-    readMoreLink.target = '_blank';
-    buttonContainer.appendChild(readMoreLink);
-
-    gsap.from(publicationCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
-  });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobilePublications = (e) => {
-    if (e.matches) {
-      publications.style.padding = '30px 20px';
-      title.style.fontSize = '28px';
-      publicationList.style.maxWidth = '100%';
-      publicationData.forEach((_, index) => {
-        const card = publicationList.children[index];
-        card.style.flexDirection = 'column';
-        card.children[0].style.width = '100%';
-        card.children[0].style.height = '200px';
-        card.children[1].style.width = '100%';
-      });
-    } else {
-      publications.style.padding = '50px 40px';
-      title.style.fontSize = '36px';
-      publicationList.style.maxWidth = '1000px';
-      publicationData.forEach((_, index) => {
-        const card = publicationList.children[index];
-        card.style.flexDirection = 'row';
-        card.children[0].style.width = '45%';
-        card.children[0].style.height = '300px';
-        card.children[1].style.width = '55%';
-      });
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobilePublications);
-  handleMobilePublications(mediaQuery);
-};
-createPublications();
-
-// Press and Media Section
-const createPressMedia = () => {
-  const pressMedia = document.createElement('section');
-  pressMedia.id = 'press-and-media';
-  pressMedia.style.padding = '50px 40px';
-  pressMedia.style.background = '#FFFFFF';
-  pressMedia.style.color = '#000000';
-  app.appendChild(pressMedia);
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'Press & <span style="font-weight: 700;">Media</span>';
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '400';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '40px';
-  pressMedia.appendChild(title);
-
-  const pressList = document.createElement('div');
-  pressList.style.maxWidth = '1000px';
-  pressList.style.margin = '0 auto';
-  pressMedia.appendChild(pressList);
-
-  const pressMediaData = [
-    {
-      number: '01',
-      title: 'Featured in the 11th Annual Forbes Africa 30 Under 30 special issue (June/July 2025)',
-      description: '',
-      logo: 'assets/forbes.png',
-      articleLink: 'https://lnkd.in/dq7vu7pg'
-    },
-    {
-      number: '02',
-      title: 'Voted Entrepreneur of the competition, Art of Lagos 2023',
-      description: '',
-      logo: 'assets/lagos.jpg', // Assume asset exists; replace with actual if needed
-      articleLink: null
-    },
-    {
-      number: '03',
-      title: 'Nominated for the Black Tech Achievement Award, United Kingdom, 2023',
-      description: '',
-      logo: 'assets/blacktech.jpg', // Assume asset exists; replace with actual if needed
-      articleLink: 'https://bit.ly/3jh1Cbv'
-    },
-    {
-      number: '04',
-      title: 'This Day Live Interview, 2023',
-      description: '',
-      logo: 'assets/thisday.png', // Assume asset exists; replace with actual if needed
-      articleLink: 'https://lnkd.in/dWVBk_33'
-    }
-  ];
-
-  pressMediaData.forEach((item, index) => {
-    const pressCard = document.createElement('div');
-    pressCard.style.display = 'flex';
-    pressCard.style.alignItems = 'center';
-    pressCard.style.marginBottom = '40px';
-    pressCard.style.gap = '30px';
-    pressCard.style.padding = '20px';
-    pressCard.style.background = '#F5F5F5';
-    pressCard.style.borderRadius = '10px';
-    pressList.appendChild(pressCard);
-
-    const logoContainer = document.createElement('div');
-    logoContainer.style.width = '45%';
-    logoContainer.style.height = '200px';
-    logoContainer.style.display = 'flex';
-    logoContainer.style.alignItems = 'center';
-    logoContainer.style.justifyContent = 'center';
-    logoContainer.style.background = '#FFFFFF';
-    logoContainer.style.borderRadius = '8px';
-    pressCard.appendChild(logoContainer);
-
-    const logoImg = document.createElement('img');
-    logoImg.src = item.logo;
-    logoImg.alt = `${item.title} Logo`;
-    logoImg.style.maxWidth = '100px';
-    logoImg.style.maxHeight = '100px';
-    logoImg.style.objectFit = 'contain';
-    logoContainer.appendChild(logoImg);
-
-    const textContainer = document.createElement('div');
-    textContainer.style.width = '55%';
-    textContainer.style.display = 'flex';
-    textContainer.style.flexDirection = 'column';
-    textContainer.style.gap = '10px';
-    pressCard.appendChild(textContainer);
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.gap = '15px';
-    textContainer.appendChild(header);
-
-    const number = document.createElement('h3');
-    number.textContent = item.number;
-    number.style.fontSize = '32px';
-    number.style.fontWeight = '700';
-    number.style.color = '#FF8C00';
-    header.appendChild(number);
-
-    const title = document.createElement('h4');
-    title.textContent = item.title;
-    title.style.fontSize = '20px';
-    title.style.fontWeight = '700';
-    title.style.color = '#000000';
-    title.style.margin = '0';
-    header.appendChild(title);
-
-    const description = document.createElement('p');
-    description.textContent = item.description;
-    description.style.fontSize = '16px';
-    description.style.fontWeight = '400';
-    description.style.color = '#666666';
-    description.style.lineHeight = '1.6';
-    description.style.maxWidth = '90%';
-    if (item.description) {
-      textContainer.appendChild(description);
-    }
-
-    if (item.articleLink) {
-      const buttonContainer = document.createElement('div');
-      buttonContainer.style.marginTop = '10px';
-      textContainer.appendChild(buttonContainer);
-
-      const readMoreLink = document.createElement('a');
-      readMoreLink.href = item.articleLink;
-      readMoreLink.textContent = 'Read Article';
-      readMoreLink.style.display = 'inline-block';
-      readMoreLink.style.padding = '8px 15px';
-      readMoreLink.style.background = '#000000';
-      readMoreLink.style.color = '#FFFFFF';
-      readMoreLink.style.fontSize = '14px';
-      readMoreLink.style.fontWeight = '700';
-      readMoreLink.style.textDecoration = 'none';
-      readMoreLink.style.borderRadius = '5px';
-      readMoreLink.target = '_blank';
-      buttonContainer.appendChild(readMoreLink);
-    }
-
-    gsap.from(pressCard, { duration: 1, opacity: 0, y: 50, ease: 'power3.out', delay: index * 0.3 });
-  });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobilePressMedia = (e) => {
-    if (e.matches) {
-      pressMedia.style.padding = '30px 20px';
-      title.style.fontSize = '28px';
-      pressList.style.maxWidth = '100%';
-      pressMediaData.forEach((_, index) => {
-        const card = pressList.children[index];
-        card.style.flexDirection = 'column';
-        card.children[0].style.width = '100%';
-        card.children[0].style.height = '150px';
-        card.children[1].style.width = '100%';
-        card.children[1].querySelector('h4').style.fontSize = '18px';
-      });
-    } else {
-      pressMedia.style.padding = '50px 40px';
-      title.style.fontSize = '36px';
-      pressList.style.maxWidth = '1000px';
-      pressMediaData.forEach((_, index) => {
-        const card = pressList.children[index];
-        card.style.flexDirection = 'row';
-        card.children[0].style.width = '45%';
-        card.children[0].style.height = '200px';
-        card.children[1].style.width = '55%';
-        card.children[1].querySelector('h4').style.fontSize = '20px';
-      });
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobilePressMedia);
-  handleMobilePressMedia(mediaQuery);
-};
-createPressMedia();
-
-// Contact Section
-const createContact = () => {
-  const contact = document.createElement('section');
-  contact.id = 'contact-me';
-  contact.style.padding = '50px 40px';
-  contact.style.background = '#FFFFFF';
-  contact.style.display = 'flex';
-  contact.style.justifyContent = 'center';
-  contact.style.alignItems = 'center';
-  app.appendChild(contact);
-
-  const textContainer = document.createElement('div');
-  textContainer.style.width = '60%';
-  textContainer.style.textAlign = 'center';
-  contact.appendChild(textContainer);
-
-  const title = document.createElement('h2');
-  title.textContent = "Let's talk about something special";
-  title.style.fontSize = '36px';
-  title.style.fontWeight = '700';
-  title.style.color = '#000000';
-  title.style.marginBottom = '20px';
-  textContainer.appendChild(title);
-
-  const description = document.createElement('p');
-  description.textContent = 'I seek to push the limits of creativity to create high-engaging, user-friendly, and memorable interactive experiences.';
-  description.style.fontSize = '16px';
-  description.style.fontWeight = '400';
-  description.style.color = '#666666';
-  description.style.lineHeight = '1.6';
-  description.style.marginBottom = '20px';
-  textContainer.appendChild(description);
-
-  const email = document.createElement('a');
-  email.textContent = 'Email Me';
-  email.href = 'mailto:johnprecious88@gmail.com';
-  email.style.fontSize = '16px';
-  email.style.fontWeight = '600';
-  email.style.color = '#000000';
-  email.style.textDecoration = 'underline';
-  email.style.display = 'block';
-  email.style.marginBottom = '10px';
-  textContainer.appendChild(email);
-
-  const phone = document.createElement('a');
-  phone.textContent = 'Call Me';
-  phone.href = 'tel:+2349067167182';
-  phone.style.fontSize = '16px';
-  phone.style.fontWeight = '600';
-  phone.style.color = '#000000';
-  phone.style.textDecoration = 'underline';
-  textContainer.appendChild(phone);
-
-  gsap.from(textContainer, { duration: 1, y: 50, opacity: 0, ease: 'power3.out' });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileContact = (e) => {
-    if (e.matches) {
-      contact.style.padding = '30px 20px';
-      textContainer.style.width = '100%';
-      title.style.fontSize = '28px';
-      description.style.fontSize = '14px';
-      email.style.fontSize = '14px';
-      phone.style.fontSize = '14px';
-    } else {
-      contact.style.padding = '50px 40px';
-      textContainer.style.width = '60%';
-      title.style.fontSize = '36px';
-      description.style.fontSize = '16px';
-      email.style.fontSize = '16px';
-      phone.style.fontSize = '16px';
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileContact);
-  handleMobileContact(mediaQuery);
-};
-createContact();
-
-// Footer
-const createFooter = () => {
-  const footer = document.createElement('footer');
-  footer.style.padding = '20px 40px';
-  footer.style.background = '#000000';
-  footer.style.color = '#FFFFFF';
-  footer.style.display = 'flex';
-  footer.style.justifyContent = 'space-between';
-  footer.style.alignItems = 'center';
-  app.appendChild(footer);
-
-  const logo = document.createElement('div');
-  logo.textContent = 'John Portfolio';
-  logo.style.fontSize = '24px';
-  logo.style.fontWeight = '700';
-  footer.appendChild(logo);
-
-  const copyright = document.createElement('div');
-  copyright.textContent = '© 2025 Personally built with Javascript';
-  copyright.style.fontSize = '14px';
-  copyright.style.fontWeight = '400';
-  footer.appendChild(copyright);
-
-  gsap.from(footer, { duration: 1, y: 50, opacity: 0, ease: 'power3.out' });
-
-  // Mobile responsiveness
-  const mediaQuery = window.matchMedia('(max-width: 768px)');
-  const handleMobileFooter = (e) => {
-    if (e.matches) {
-      footer.style.padding = '15px 20px';
-      footer.style.flexDirection = 'column';
-      footer.style.textAlign = 'center';
-      logo.style.fontSize = '20px';
-      copyright.style.fontSize = '12px';
-      copyright.style.marginTop = '10px';
-    } else {
-      footer.style.padding = '20px 40px';
-      footer.style.flexDirection = 'row';
-      footer.style.textAlign = 'left';
-      logo.style.fontSize = '24px';
-      copyright.style.fontSize = '14px';
-      copyright.style.marginTop = '0';
-    }
-  };
-  mediaQuery.addEventListener('change', handleMobileFooter);
-  handleMobileFooter(mediaQuery);
-};
-createFooter();
+  if (hasGsap && !reduce) {
+    gsap.set(heroBits, { y: 26, autoAlpha: 0 });
+    if (heroTitle) gsap.set(heroTitle, { autoAlpha: 0 });
+  }
+  const start = () => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(runHero);
+  if (document.readyState === "complete") start(); else window.addEventListener("load", start, { once: true });
+
+  /* ---------- Parallax on hero background & footer name ---------- */
+  if (hasGsap && !reduce) {
+    gsap.registerPlugin(ScrollTrigger);
+    const bigName = $(".footer__marquee-name");
+    if (bigName) gsap.fromTo(bigName, { xPercent: -6 }, { xPercent: 2, ease: "none", scrollTrigger: { trigger: ".footer", start: "top bottom", end: "bottom bottom", scrub: 1 } });
+    window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
+  }
+
+})();
