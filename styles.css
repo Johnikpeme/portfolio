@@ -1,48 +1,10 @@
 /* =========================================================
    John Ikpeme portfolio
-   Vanilla CSS. Dark-first, light theme via [data-theme].
+   Vanilla CSS. Light by default, dark theme via [data-theme="dark"].
    ========================================================= */
 
 /* ---------- Tokens ---------- */
 :root {
-  color-scheme: dark;
-
-  --bg: #0d0c10;
-  --bg-2: #121116;
-  --surface: #17161c;
-  --surface-2: #1d1c23;
-  --border: rgba(238, 237, 243, 0.09);
-  --border-strong: rgba(238, 237, 243, 0.18);
-  --text: #eeedf3;
-  --text-2: #c8c6d1;
-  --muted: #9c99a7;
-  --faint: #6a6775;
-  --accent: #a98bff;
-  --accent-2: #c7b2ff;
-  --accent-ink: #160a2e;
-  --accent-soft: rgba(169, 139, 255, 0.14);
-  --green: #4ade80;
-  --grain-opacity: 0.055;
-  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.75);
-
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Space Grotesk", system-ui, sans-serif;
-  --font-mono: "Space Grotesk", system-ui, sans-serif;
-  --font-serif: "Space Grotesk", system-ui, sans-serif;
-
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.83, 0, 0.17, 1);
-  --dur: 0.4s;
-
-  --container: 1560px;
-  --gutter: clamp(1.25rem, 5vw, 6rem);
-  --section-gap: clamp(6rem, 12vw, 10rem);
-  --radius: 0;
-  --radius-sm: 0;
-  --nav-h: 72px;
-}
-
-:root[data-theme="light"] {
   color-scheme: light;
   --bg: #fcfcfd;
   --bg-2: #f1f1f4;
@@ -61,6 +23,40 @@
   --green: #15803d;
   --grain-opacity: 0;
   --shadow: none;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Grotesk", system-ui, sans-serif;
+  --font-serif: "Space Grotesk", system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.83, 0, 0.17, 1);
+  --dur: 0.4s;
+  --container: 1560px;
+  --gutter: clamp(1.25rem, 5vw, 6rem);
+  --section-gap: clamp(6rem, 12vw, 10rem);
+  --radius: 0;
+  --radius-sm: 0;
+  --nav-h: 72px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d0c10;
+  --bg-2: #121116;
+  --surface: #17161c;
+  --surface-2: #1d1c23;
+  --border: rgba(238, 237, 243, 0.09);
+  --border-strong: rgba(238, 237, 243, 0.18);
+  --text: #eeedf3;
+  --text-2: #c8c6d1;
+  --muted: #9c99a7;
+  --faint: #6a6775;
+  --accent: #a98bff;
+  --accent-2: #c7b2ff;
+  --accent-ink: #160a2e;
+  --accent-soft: rgba(169, 139, 255, 0.14);
+  --green: #4ade80;
+  --grain-opacity: 0.055;
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.75);
 }
 
 /* ---------- Reset ---------- */
@@ -172,9 +168,9 @@ ul, ol { padding: 0; list-style: none; }
 }
 .theme-toggle:hover { color: var(--text); border-color: var(--border-strong); transform: rotate(20deg); }
 .theme-toggle svg { width: 18px; height: 18px; }
-.theme-toggle .icon-sun { display: none; }
-:root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
-:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
 .menu-btn { display: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); place-items: center; color: var(--text); }
 .menu-btn span { grid-area: 1 / 1; display: block; width: 16px; height: 1.5px; background: currentColor; transition: transform 0.4s var(--ease-out); }
 .menu-btn span:first-child { transform: translateY(-3px); }

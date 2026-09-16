@@ -15,11 +15,11 @@
 
   /* ---------- Theme ---------- */
   const themeBtn = $("#theme-toggle");
-  // The site is dark by default; only an explicit choice (stored in localStorage) switches it.
-  const currentTheme = () => root.dataset.theme || "dark";
+  // The site is light by default; only an explicit choice (stored in localStorage) switches it.
+  const currentTheme = () => root.dataset.theme || "light";
   const applyThemeMeta = () => {
     const meta = $('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", currentTheme() === "light" ? "#fcfcfd" : "#0d0c10");
+    if (meta) meta.setAttribute("content", currentTheme() === "dark" ? "#0d0c10" : "#fcfcfd");
     if (themeBtn) themeBtn.setAttribute("aria-pressed", String(currentTheme() === "dark"));
   };
   applyThemeMeta();
